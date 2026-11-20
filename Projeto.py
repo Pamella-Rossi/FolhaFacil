@@ -18,14 +18,13 @@ def mostrar_menu():
 
     print("-" * 48)
 
-
 def executar_opcao(opcao):
 
     if opcao == "1":
         cadastrar_colaborador()
 
     elif opcao == "2":
-        print("\nGeração de folha de pagamento:")
+       folha_pagamento_geral()
 
     elif opcao == "3":
         pesquisar_colaborador()
@@ -38,7 +37,6 @@ def executar_opcao(opcao):
 
     elif opcao == "6":
         menu_relatorios()
-
 
 def main():
 
@@ -56,7 +54,6 @@ def main():
             break
 
         executar_opcao(opcao)
-
 
 colaboradores = []
 
@@ -216,6 +213,317 @@ def cadastrar_colaborador():
     print("=" * 48)
 
 
+def moeda(valor):
+    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+def folha_pagamento_geral():
+
+    if not colaboradores:
+        print("\nNenhum colaborador cadastrado.")
+        return
+
+    folha = []
+
+    total_bruto = 0
+    total_inss = 0
+    total_vt = 0
+    total_descontos = 0
+    total_liquido = 0
+
+    tipos = {
+        "1": "Padrão",
+        "2": "Comissionado",
+        "3": "Produção"
+    }
+
+    meses = [
+        "", "JANEIRO", "FEVEREIRO", "MARÇO",
+        "ABRIL", "MAIO", "JUNHO",
+        "JULHO", "AGOSTO", "SETEMBRO",
+        "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
+    ]
+
+    periodo = f"{meses[datetime.now().month]} / {datetime.now().year}"
+
+    def ler_valor(mensagem):
+        while True:
+            try:
+                valor = float(input(mensagem).strip().replace(",", "."))
+
+                if valor < 0:
+                    print("O valor não pode ser negativo.")
+                    continue
+
+                return valor
+
+            except ValueError:
+                print("Digite um valor numérico válido.")
+
+    def ler_quantidade(mensagem):
+        while True:
+            try:
+                quantidade = int(input(mensagem).strip())
+
+                if quantidade < 0:
+                    print("A quantidade não pode ser negativa.")
+                    continue
+
+                return quantidade
+
+            except ValueError:
+                print("Digite uma quantidade inteira válida.")
+
+    print("\n" + "=" * 60)
+    print("                  FOLHAFÁCIL")
+    print("               GERAÇÃO DA FOLHA")
+    print("=" * 60)
+
+    print(f"\nForam encontrados {len(colaboradores)} colaboradores.")
+    print("\nIniciando atualização dos dados de pagamento...")
+
+    for indice, colaborador in enumerate(colaboradores, start=1):
+
+        nome = colaborador["nome"]
+        tipo = colaborador["tipo"]
+        regime = colaborador["regime"]
+
+        salario_base = colaborador["salario_base"]
+
+        vendas = 0
+        percentual_comissao = 0
+        comissao = 0
+
+        pecas = 0
+        valor_peca = 0
+        total_producao = 0
+
+        print("\n" + "_" * 60)
+
+        print(f"\n[{indice}/{len(colaboradores)}] {nome.upper()}")
+
+        print(f"\nMatrícula: {colaborador['matricula']}")
+        print(f"Tipo: {tipos[tipo]}")
+        print(f"Regime: {regime}")
+
+        if tipo == "2":
+
+            vendas = ler_valor(
+                "\nInforme o valor total de vendas no período:\n> "
+            )
+
+            percentual_comissao = ler_valor(
+                "\nInforme o percentual de comissão:\n> "
+            )
+
+            while percentual_comissao > 100:
+                print("O percentual não pode ser maior que 100%.")
+                percentual_comissao = ler_valor(
+                    "Informe o percentual de comissão:\n> "
+                )
+
+            comissao = round(
+                vendas * percentual_comissao / 100, 2
+            )
+
+            print("\n" + "-" * 40)
+            print(f"Comissão cadastrada: {percentual_comissao:g}%")
+            print(f"Comissão calculada: {moeda(comissao)}")
+
+        elif tipo == "3":
+
+            pecas = ler_quantidade(
+                "\nInforme a quantidade de peças produzidas:\n> "
+            )
+
+            valor_peca = ler_valor(
+                "\nInforme o valor pago por peça:\n> "
+            )
+
+            total_producao = round(pecas * valor_peca, 2)
+
+            print("\n" + "-" * 40)
+            print(f"Valor por peça: {moeda(valor_peca)}")
+            print(f"Total da produção: {moeda(total_producao)}")
+
+        else:
+            print("\n" + "-" * 40)
+            print("Nenhuma informação adicional necessária.")
+
+        print("\nDados registrados com sucesso!")
+
+        salario_bruto = round(
+            salario_base + comissao + total_producao, 2
+        )
+
+        desconto_inss = 0
+        desconto_vt = 0
+
+        if regime == "CLT":
+
+            desconto_inss = 155.69
+
+            if colaborador["vale_transporte"] == "SIM":
+                desconto_vt = round(salario_base * 0.06, 2)
+
+        descontos = round(desconto_inss + desconto_vt, 2)
+
+        salario_liquido = round(salario_bruto - descontos, 2)
+
+        # ARMAZENAMENTO DOS RESULTADOS DA FOLHA
+
+        dados_folha = {
+            "nome": nome,
+            "matricula": colaborador["matricula"],
+            "cargo": colaborador["cargo"],
+            "tipo": tipos[tipo],
+            "regime": regime,
+            "salario_base": salario_base,
+            "vendas": vendas,
+            "percentual_comissao": percentual_comissao,
+            "comissao": comissao,
+            "pecas": pecas,
+            "valor_peca": valor_peca,
+            "total_producao": total_producao,
+            "salario_bruto": salario_bruto,
+            "inss": desconto_inss,
+            "vale_transporte": desconto_vt,
+            "descontos": descontos,
+            "salario_liquido": salario_liquido
+        }
+
+        folha.append(dados_folha)
+
+        total_bruto += salario_bruto
+        total_inss += desconto_inss
+        total_vt += desconto_vt
+        total_descontos += descontos
+        total_liquido += salario_liquido
+
+    print("\n" + "_" * 60)
+    print("\nTodos os dados foram atualizados!")
+
+    print("\nCalculando salários e descontos...")
+    print("\nAguarde...")
+
+    print("\n" + "=" * 60)
+    print("                  FOLHAFÁCIL")
+    print("               FOLHA DE PAGAMENTO")
+    print("=" * 60)
+
+    print(f"\nPERÍODO: {periodo}")
+
+    for indice, dados in enumerate(folha, start=1):
+
+        print("\n")
+        print(f"[{indice}] {dados['nome'].upper()}")
+        print("-" * 60)
+
+        print(f"Matrícula: {dados['matricula']}")
+        print(f"Cargo: {dados['cargo']}")
+        print(f"Tipo: {dados['tipo']}")
+        print(f"Regime: {dados['regime']}")
+
+        print("\nCOMPOSIÇÃO SALARIAL\n")
+
+        print(f"{'Salário-base:':<34}{moeda(dados['salario_base']):>20}")
+
+        if dados["tipo"] == "Comissionado":
+
+            print(f"{'Total de vendas:':<34}{moeda(dados['vendas']):>20}")
+
+            print(
+                f"{'Percentual de comissão:':<34}"
+                f"{str(dados['percentual_comissao']) + '%':>20}"
+            )
+
+            print(f"{'Valor da comissão:':<34}{moeda(dados['comissao']):>20}")
+
+        elif dados["tipo"] == "Produção":
+
+            print(f"{'Peças produzidas:':<34}{dados['pecas']:>20}")
+
+            print(f"{'Valor por peça:':<34}{moeda(dados['valor_peca']):>20}")
+
+            print(
+                f"{'Total da produção:':<34}"
+                f"{moeda(dados['total_producao']):>20}"
+            )
+
+        print()
+        print(f"{'Salário bruto:':<34}{moeda(dados['salario_bruto']):>20}")
+
+        print("\nDESCONTOS\n")
+
+        if dados["regime"] == "CLT":
+
+            print(f"{'INSS:':<34}{moeda(dados['inss']):>20}")
+
+            print(
+                f"{'Vale-transporte:':<34}"
+                f"{moeda(dados['vale_transporte']):>20}"
+            )
+
+            print(
+                f"{'Total de descontos:':<34}"
+                f"{moeda(dados['descontos']):>20}"
+            )
+
+        else:
+            print("Descontos automáticos não aplicados ao regime PJ.")
+
+        print()
+
+        print(
+            f"{'SALÁRIO LÍQUIDO:':<34}"
+            f"{moeda(dados['salario_liquido']):>20}"
+        )
+
+    print("\n" + "=" * 60)
+    print("                 RESUMO GERAL DA FOLHA")
+    print("=" * 60)
+
+    print(
+        f"{'Total de colaboradores:':<34}"
+        f"{len(folha):>20}"
+    )
+
+    print()
+
+    print(
+        f"{'Total de salários brutos:':<34}"
+        f"{moeda(total_bruto):>20}"
+    )
+
+    print()
+
+    print(
+        f"{'Total de INSS:':<34}"
+        f"{moeda(total_inss):>20}"
+    )
+
+    print(
+        f"{'Total de vale-transporte:':<34}"
+        f"{moeda(total_vt):>20}"
+    )
+
+    print()
+
+    print(
+        f"{'Total de descontos:':<34}"
+        f"{moeda(total_descontos):>20}"
+    )
+
+    print("\n" + "=" * 60)
+
+    print(
+        f"{'TOTAL LÍQUIDO A PAGAR:':<34}"
+        f"{moeda(total_liquido):>20}"
+    )
+
+    print("=" * 60)
+
+    print("\nFolha de pagamento gerada com sucesso!")
+
 def pesquisar_colaborador():
 
     print("\n" + "=" * 60)
@@ -291,7 +599,6 @@ def pesquisar_colaborador():
 
         print("=" * 60)
 
-
 def menu_relatorios():
 
     while True:
@@ -324,6 +631,7 @@ def executar_relatorio(opcao_relatorio):
 
     elif opcao_relatorio == "2":
         pass
+
 
 
 if __name__ == "__main__":
