@@ -1,17 +1,5 @@
 from datetime import datetime
 
-colaboradores = []
-
-SALARIO_BASE = 2000.00
-
-CARGOS = {
-    "1": "Assistente Administrativo",
-    "2": "Auxiliar de TI",
-    "3": "Auxiliar Financeiro",
-    "4": "Auxiliar de Produção"
-}
-
-
 def mostrar_menu():
     print("\n" + "-" * 48)
     print("                   MENU PRINCIPAL")
@@ -49,7 +37,7 @@ def executar_opcao(opcao):
         print("\nExclusão de colaborador:")
 
     elif opcao == "6":
-        print("\nRelatórios:")
+        menu_relatorios()
 
 
 def main():
@@ -70,15 +58,6 @@ def main():
         executar_opcao(opcao)
 
 
-
-from datetime import datetime
-
-
-from datetime import datetime
-
-
-from datetime import datetime
-
 colaboradores = []
 
 SALARIO_BASE = 2000.00
@@ -89,7 +68,6 @@ CARGOS = {
     "3": "Auxiliar Financeiro",
     "4": "Auxiliar de Produção"
 }
-
 
 def cadastrar_colaborador():
 
@@ -264,27 +242,6 @@ def pesquisar_colaborador():
         print("\nNenhum colaborador encontrado.")
         return
 
-    def calcular_inss(salario):
-        faixas = [
-            (1621.00, 0.075),
-            (2902.84, 0.09),
-            (4354.27, 0.12),
-            (8475.55, 0.14)
-        ]
-
-        total = 0
-        limite_anterior = 0
-
-        for limite, aliquota in faixas:
-            if salario > limite_anterior:
-                parcela = min(salario, limite) - limite_anterior
-                total += parcela * aliquota
-                limite_anterior = limite
-            else:
-                break
-
-        return round(total, 2)
-
     def moeda(valor):
         return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
@@ -332,34 +289,41 @@ def pesquisar_colaborador():
         print(f"{'Vale-transporte':<32}{'Salário bruto'}")
         print(f"{vale_transporte_exibicao:<32}{moeda(salario)}")
 
-        print("-" * 60)
-
-        if regime == "CLT":
-
-            desconto_inss = calcular_inss(salario)
-
-            if vale_transporte == "SIM":
-                desconto_vt = round(salario * 0.06, 2)
-            else:
-                desconto_vt = 0
-
-            total_descontos = desconto_inss + desconto_vt
-            salario_liquido = salario - total_descontos
-
-            print(f"{'Desconto INSS':<32}{moeda(desconto_inss)}")
-            print(f"{'Desconto vale-transporte':<32}{moeda(desconto_vt)}")
-
-            print("-" * 60)
-
-            print(f"{'Total de descontos':<32}{moeda(total_descontos)}")
-            print()
-            print(f"{'SALÁRIO LÍQUIDO':<25}{moeda(salario_liquido):>20}")
-
-        else:
-            print("Cálculo de descontos não aplicado automaticamente.")
-            print("O regime PJ possui regras diferentes de tributação.")
-
         print("=" * 60)
+
+
+def menu_relatorios():
+
+    while True:
+        print("\n" + "-" * 48)
+        print("                    RELATÓRIOS")
+        print("-" * 48)
+
+        print("1. Relatório geral")
+        print("2. Relatório por cargo")
+        print("0. Voltar ao menu principal")
+
+        print("-" * 48)
+
+        opcao_relatorio = input("Escolha uma opção (0 a 2): ").strip()
+
+        if opcao_relatorio not in ("0", "1", "2"):
+            print("\nEssa opção não existe. Digite um número de 0 a 2.")
+            input("Pressione Enter para continuar...")
+            continue
+
+        if opcao_relatorio == "0":
+            break
+
+        executar_relatorio(opcao_relatorio)
+
+def executar_relatorio(opcao_relatorio):
+
+    if opcao_relatorio == "1":
+        pass
+
+    elif opcao_relatorio == "2":
+        pass
 
 
 if __name__ == "__main__":
