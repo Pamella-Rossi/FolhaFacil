@@ -1,5 +1,17 @@
 from datetime import datetime
 
+colaboradores = []
+
+SALARIO_BASE = 2000.00
+
+CARGOS = {
+    "1": "Assistente Administrativo",
+    "2": "Auxiliar de TI",
+    "3": "Auxiliar Financeiro",
+    "4": "Auxiliar de Produção"
+}
+
+
 def mostrar_menu():
     print("\n" + "-" * 48)
     print("                   MENU PRINCIPAL")
@@ -23,26 +35,21 @@ def executar_opcao(opcao):
 
     if opcao == "1":
         cadastrar_colaborador()
-        print("Cadastro em andamento.")
 
     elif opcao == "2":
         print("\nGeração de folha de pagamento:")
-        print("Geração em andamento.")
 
     elif opcao == "3":
         pesquisar_colaborador()
 
     elif opcao == "4":
         print("\nEdição de colaborador:")
-        print("Edição em andamento.")
 
     elif opcao == "5":
         print("\nExclusão de colaborador:")
-        print("Exclusão em andamento.")
 
     elif opcao == "6":
         print("\nRelatórios:")
-        print("Geração de relatórios em andamento.")
 
 
 def main():
@@ -116,19 +123,20 @@ def cadastrar_colaborador():
     print("_" * 40)
 
     print("\n[  MATRÍCULA  ]\n")
-    matricula = input("Matrícula: ").strip()
 
-    while matricula == "":
-        print("A matrícula não pode ficar vazia.")
-        matricula = input("Matrícula: ").strip()
+    matricula = input("Digite a matrícula (4 dígitos): ").strip()
 
-    while any(c["matricula"] == matricula for c in colaboradores):
-        print("Essa matrícula já está cadastrada.")
-        matricula = input("Digite outra matrícula: ").strip()
+    while (
+        not matricula.isdigit()
+        or len(matricula) != 4
+        or matricula in [c["matricula"] for c in colaboradores]
+    ):
+        if not matricula.isdigit() or len(matricula) != 4:
+            print("A matrícula deve conter exatamente 4 números.")
+        else:
+            print("Essa matrícula já está cadastrada.")
 
-        while matricula == "":
-            print("A matrícula não pode ficar vazia.")
-            matricula = input("Matrícula: ").strip()
+        matricula = input("Digite a matrícula (4 dígitos): ").strip()
 
     print("_" * 40)
 
@@ -316,19 +324,17 @@ def pesquisar_colaborador():
 
         print()
 
+        if regime == "PJ":
+            vale_transporte_exibicao = "Não se aplica"
+        else:
+            vale_transporte_exibicao = vale_transporte.capitalize()
+
         print(f"{'Vale-transporte':<32}{'Salário bruto'}")
+        print(f"{vale_transporte_exibicao:<32}{moeda(salario)}")
 
-    if regime == "PJ":
-        vale_transporte_exibicao = "Não se aplica"
-    salario_exibicao = salario
+        print("-" * 60)
 
-    else:
-    vale_transporte_exibicao = vale_transporte.capitalize()
-    salario_exibicao = salario
-
-    print("-" * 60)
-
-    if regime == "CLT":
+        if regime == "CLT":
 
             desconto_inss = calcular_inss(salario)
 
@@ -358,5 +364,3 @@ def pesquisar_colaborador():
 
 if __name__ == "__main__":
     main()
-
-
