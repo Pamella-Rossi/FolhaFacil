@@ -1,3 +1,10 @@
+# INTEGRANTES:
+# Pamella de Rossi Oliveira
+# Yasmin Aparecida Araujo Rocha
+# Luana Alves Ferreira
+# Giulia Beatriz da Silva Freitas
+
+
 from datetime import datetime
 
 def mostrar_menu():
