@@ -409,9 +409,6 @@ def folha_pagamento_geral():
     print("\n" + "_" * 60)
     print("\nTodos os dados foram atualizados!")
 
-    print("\nCalculando salários e descontos...")
-    print("\nAguarde...")
-
     print("\n" + "=" * 60)
     print("                  FOLHAFÁCIL")
     print("               FOLHA DE PAGAMENTO")
