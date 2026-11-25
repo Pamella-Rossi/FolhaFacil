@@ -658,8 +658,11 @@ def relatorio_geral():
     total_pj = sum(1 for c in colaboradores if c["regime"] == "PJ")
 
     print(f"\nTotal de colaboradores: {len(colaboradores)}")
+    print()
     print(f"Colaboradores CLT: {total_clt}")
+    print()
     print(f"Colaboradores PJ: {total_pj}")
+    print()
     print(f"Total dos salários-base: {moeda(total_salarios_base)}")
 
     print("\n" + "-" * 60)
@@ -709,7 +712,9 @@ def relatorio_por_cargo():
         print(cargo.upper())
         print("-" * 60)
         print(f"Quantidade de colaboradores: {len(lista)}")
+        print()
         print(f"Total dos salários-base do cargo: {moeda(soma_salarios)}")
+        print()
         print("Colaboradores:")
 
         for colaborador in lista:
