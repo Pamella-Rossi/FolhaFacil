@@ -630,13 +630,102 @@ def menu_relatorios():
 
 def executar_relatorio(opcao_relatorio):
 
-    if opcao_relatorio == "1":
-        pass
+     if opcao_relatorio == "1":
+        relatorio_geral()
 
-    elif opcao_relatorio == "2":
-        pass
+     elif opcao_relatorio == "2":
+        relatorio_por_cargo()
 
+
+def relatorio_geral():
+
+    print("\n" + "=" * 60)
+    print("                 RELATÓRIO GERAL")
+    print("=" * 60)
+
+    if not colaboradores:
+        print("\nNenhum colaborador cadastrado para exibir.")
+        return
+
+    tipos = {
+        "1": "Padrão",
+        "2": "Comissionado",
+        "3": "Produção"
+    }
+
+    total_salarios_base = sum(c["salario_base"] for c in colaboradores)
+    total_clt = sum(1 for c in colaboradores if c["regime"] == "CLT")
+    total_pj = sum(1 for c in colaboradores if c["regime"] == "PJ")
+
+    print(f"\nTotal de colaboradores: {len(colaboradores)}")
+    print(f"Colaboradores CLT: {total_clt}")
+    print(f"Colaboradores PJ: {total_pj}")
+    print(f"Total dos salários-base: {moeda(total_salarios_base)}")
+
+    print("\n" + "-" * 60)
+    print("COLABORADORES CADASTRADOS")
+    print("-" * 60)
+
+    for indice, colaborador in enumerate(colaboradores, start=1):
+        tipo = tipos.get(colaborador["tipo"], colaborador["tipo"])
+        print(f"\n{indice}. {colaborador['nome']}")
+        print(f"   Matrícula: {colaborador['matricula']}")
+        print(f"   Cargo: {colaborador['cargo']}")
+        print(f"   Tipo: {tipo}")
+        print(f"   Regime: {colaborador['regime']}")
+        print(
+            f"   Vale-transporte: "
+            f"{colaborador['vale_transporte'].capitalize()}"
+        )
+        print(f"   Data de admissão: {colaborador['data_admissao']}")
+        print(f"   Salário-base: {moeda(colaborador['salario_base'])}")
+
+    print("\n" + "=" * 60)
+
+
+def relatorio_por_cargo():
+
+    print("\n" + "=" * 60)
+    print("               RELATÓRIO POR CARGO")
+    print("=" * 60)
+
+    if not colaboradores:
+        print("\nNenhum colaborador cadastrado para exibir.")
+        return
+
+    cargos = {}
+
+    for colaborador in colaboradores:
+        cargo = colaborador["cargo"]
+        cargos.setdefault(cargo, []).append(colaborador)
+
+    total_salarios_base = sum(c["salario_base"] for c in colaboradores)
+
+    for cargo in sorted(cargos):
+        lista = cargos[cargo]
+        soma_salarios = sum(c["salario_base"] for c in lista)
+
+        print("\n" + "-" * 60)
+        print(cargo.upper())
+        print("-" * 60)
+        print(f"Quantidade de colaboradores: {len(lista)}")
+        print(f"Total dos salários-base do cargo: {moeda(soma_salarios)}")
+        print("Colaboradores:")
+
+        for colaborador in lista:
+            print(
+                f"  - {colaborador['nome']} "
+                f"(matrícula {colaborador['matricula']}) — "
+                f"{colaborador['regime']} — "
+                f"salário-base {moeda(colaborador['salario_base'])}"
+            )
+
+    print("\n" + "-" * 60)
+    print(f"Total de colaboradores: {len(colaboradores)}")
+    print(f"Total dos salários-base: {moeda(total_salarios_base)}")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
     main()
+    
