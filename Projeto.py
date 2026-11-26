@@ -7,6 +7,203 @@
 
 from datetime import datetime
 
+
+SALARIO_BASE = 2000.00
+
+CARGOS = {
+    "1": "Assistente Administrativo",
+    "2": "Auxiliar de TI",
+    "3": "Auxiliar Financeiro",
+    "4": "Auxiliar de Produção"
+}
+
+colaboradores = []
+
+class Colaborador:
+    def __init__(
+        self,
+        matricula,
+        nome,
+        salarioBase,
+        cargo,
+        regime,
+        vale_transporte,
+        data_admissao
+    ):
+        self.matricula = matricula
+        self.nome = nome
+        self.salarioBase = salarioBase
+        self.cargo = cargo
+        self.regime = regime
+        self.vale_transporte = vale_transporte
+        self.data_admissao = data_admissao
+
+    def calcularSalarioFinal(self):
+        return self.salarioBase
+
+    def exibirDados(self):
+        print(f"Nome: {self.nome}")
+        print(f"Matrícula: {self.matricula}")
+        print(f"Cargo: {self.cargo}")
+        print(f"Regime: {self.regime}")
+        print(f"Vale-transporte: {self.vale_transporte}")
+        print(f"Data de admissão: {self.data_admissao}")
+        print(f"Salário-base: {moeda(self.salarioBase)}")
+
+class ColaboradorPadrao(Colaborador):
+    def calcularSalarioFinal(self):
+        return self.salarioBase
+
+class ColaboradorComissionado(Colaborador):
+    def __init__(
+        self,
+        matricula,
+        nome,
+        salarioBase,
+        cargo,
+        regime,
+        vale_transporte,
+        data_admissao
+    ):
+        super().__init__(
+            matricula,
+            nome,
+            salarioBase,
+            cargo,
+            regime,
+            vale_transporte,
+            data_admissao
+        )
+        self.valorVendas = 0.0
+        self.percentualComissao = 0.0
+
+    def calcularComissao(self):
+        return round(
+            self.valorVendas * self.percentualComissao / 100,
+            2
+        )
+
+    def calcularSalarioFinal(self):
+        return round(
+            self.salarioBase + self.calcularComissao(),
+            2
+        )
+
+class ColaboradorProducao(Colaborador):
+    def __init__(
+        self,
+        matricula,
+        nome,
+        salarioBase,
+        cargo,
+        regime,
+        vale_transporte,
+        data_admissao
+    ):
+        super().__init__(
+            matricula,
+            nome,
+            salarioBase,
+            cargo,
+            regime,
+            vale_transporte,
+            data_admissao
+        )
+        self.quantidadePecas = 0
+        self.valorPorPeca = 0.0
+
+    def calcularProdutividade(self):
+        return round(
+            self.quantidadePecas * self.valorPorPeca,
+            2
+        )
+
+    def calcularSalarioFinal(self):
+        return round(
+            self.salarioBase + self.calcularProdutividade(),
+            2
+        )
+
+def moeda(valor):
+    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def obter_tipo_colaborador(colaborador):
+    if isinstance(colaborador, ColaboradorComissionado):
+        return "Comissionado"
+    elif isinstance(colaborador, ColaboradorProducao):
+        return "Produção"
+    else:
+        return "Padrão"
+
+
+def buscar_colaborador(matricula):
+    for colaborador in colaboradores:
+        if colaborador.matricula == matricula:
+            return colaborador
+    return None
+
+
+def ler_sim_nao(mensagem):
+    resposta = input(mensagem).strip().casefold()
+
+    while resposta not in ("sim", "não", "nao"):
+        print("Digite Sim ou Não.")
+        resposta = input(mensagem).strip().casefold()
+
+    return "SIM" if resposta == "sim" else "NÃO"
+
+
+def ler_valor(mensagem):
+    while True:
+        try:
+            valor = float(input(mensagem).strip().replace(",", "."))
+            if valor < 0:
+                print("O valor não pode ser negativo.")
+                continue
+            return valor
+        except ValueError:
+            print("Digite um valor numérico válido.")
+
+
+def ler_quantidade(mensagem):
+    while True:
+        try:
+            quantidade = int(input(mensagem).strip())
+            if quantidade < 0:
+                print("A quantidade não pode ser negativa.")
+                continue
+            return quantidade
+        except ValueError:
+            print("Digite uma quantidade inteira válida.")
+
+
+def criar_colaborador(
+    tipo,
+    matricula,
+    nome,
+    cargo,
+    regime,
+    vale_transporte,
+    data_admissao,
+    salario_base=SALARIO_BASE
+):
+    if tipo == "1":
+        return ColaboradorPadrao(
+            matricula, nome, salario_base, cargo, regime,
+            vale_transporte, data_admissao
+        )
+    elif tipo == "2":
+        return ColaboradorComissionado(
+            matricula, nome, salario_base, cargo, regime,
+            vale_transporte, data_admissao
+        )
+    else:
+        return ColaboradorProducao(
+            matricula, nome, salario_base, cargo, regime,
+            vale_transporte, data_admissao
+        )
+
 def mostrar_menu():
     print("\n" + "-" * 48)
     print("                   MENU PRINCIPAL")
@@ -14,7 +211,6 @@ def mostrar_menu():
     print("                    FolhaFácil")
     print("          Sistema de Folha de Pagamento")
     print("-" * 48)
-
     print("1. Cadastrar colaborador")
     print("2. Gerar Folha de Pagamento")
     print("3. Pesquisar colaborador")
@@ -22,31 +218,25 @@ def mostrar_menu():
     print("5. Excluir colaborador")
     print("6. Relatórios")
     print("0. Sair")
-
     print("-" * 48)
 
-def executar_opcao(opcao):
 
+def executar_opcao(opcao):
     if opcao == "1":
         cadastrar_colaborador()
-
     elif opcao == "2":
-       folha_pagamento_geral()
-
+        folha_pagamento_geral()
     elif opcao == "3":
         pesquisar_colaborador()
-
     elif opcao == "4":
-        print("\nEdição de colaborador:")
-
+        editar_colaborador()
     elif opcao == "5":
-        print("\nExclusão de colaborador:")
-
+        excluir_colaborador()
     elif opcao == "6":
         menu_relatorios()
 
-def main():
 
+def main():
     while True:
         mostrar_menu()
         opcao = input("Escolha uma opção (0 a 6): ").strip()
@@ -62,26 +252,15 @@ def main():
 
         executar_opcao(opcao)
 
-colaboradores = []
-
-SALARIO_BASE = 2000.00
-
-CARGOS = {
-    "1": "Assistente Administrativo",
-    "2": "Auxiliar de TI",
-    "3": "Auxiliar Financeiro",
-    "4": "Auxiliar de Produção"
-}
 
 def cadastrar_colaborador():
-
     print("\n" + "=" * 48)
     print("          >>> CADASTRO DE COLABORADOR <<<")
     print("=" * 48)
 
     print("_" * 40)
-
     print("\n[  NOME  ]\n")
+
     nome = input("Nome completo: ").strip()
 
     while nome == "":
@@ -89,13 +268,12 @@ def cadastrar_colaborador():
         nome = input("Nome completo: ").strip()
 
     print("_" * 40)
-
     print("\n[  TIPO DE COLABORADOR  ]\n")
     print("1 - Padrão")
     print("2 - Comissionado")
     print("3 - Produção")
-
     print()
+
     tipo = input("Escolha o tipo: ").strip()
 
     while tipo not in ("1", "2", "3"):
@@ -103,7 +281,6 @@ def cadastrar_colaborador():
         tipo = input("Escolha o tipo: ").strip()
 
     print("_" * 40)
-
     print("\n[  MATRÍCULA  ]\n")
 
     matricula = input("Digite a matrícula (4 dígitos): ").strip()
@@ -111,35 +288,33 @@ def cadastrar_colaborador():
     while (
         not matricula.isdigit()
         or len(matricula) != 4
-        or matricula in [c["matricula"] for c in colaboradores]
+        or buscar_colaborador(matricula) is not None
     ):
         if not matricula.isdigit() or len(matricula) != 4:
             print("A matrícula deve conter exatamente 4 números.")
         else:
             print("Essa matrícula já está cadastrada.")
-
         matricula = input("Digite a matrícula (4 dígitos): ").strip()
 
     print("_" * 40)
-
     print("\n[  CARGO  ]\n")
     print("1 - Assistente Administrativo")
     print("2 - Auxiliar de TI")
     print("3 - Auxiliar Financeiro")
     print("4 - Auxiliar de Produção")
-
     print()
-    cargo = input("Escolha o cargo: ").strip()
 
-    while cargo not in CARGOS:
+    cargo_opcao = input("Escolha o cargo: ").strip()
+
+    while cargo_opcao not in CARGOS:
         print("Cargo inválido. Escolha uma opção de 1 a 4.")
-        cargo = input("Escolha o cargo: ").strip()
+        cargo_opcao = input("Escolha o cargo: ").strip()
 
-    cargo = CARGOS[cargo]
+    cargo = CARGOS[cargo_opcao]
 
     print("_" * 40)
-
     print("\n[  REGIME DE CONTRATAÇÃO  ]\n")
+
     regime = input("Regime de contratação (CLT ou PJ): ").strip().upper()
 
     while regime not in ("CLT", "PJ"):
@@ -149,34 +324,21 @@ def cadastrar_colaborador():
     print("_" * 40)
 
     if regime == "CLT":
-
         print("\n[  VALE-TRANSPORTE  ]\n")
-        vale_transporte = input(
-            "Recebe vale-transporte? (Sim/Não): "
-        ).strip().upper()
-
-        while vale_transporte not in ("SIM", "NÃO", "NAO"):
-            print("Digite Sim ou Não.")
-            vale_transporte = input(
-                "Recebe vale-transporte? (Sim/Não): "
-            ).strip().upper()
-
-        if vale_transporte == "NAO":
-            vale_transporte = "NÃO"
-
+        resposta = ler_sim_nao("Recebe vale-transporte? (Sim/Não): ")
+        vale_transporte = resposta
     else:
         vale_transporte = "NÃO SE APLICA"
 
     print("_" * 40)
-
     print("\n[  DATA DE ADMISSÃO  ]\n")
+
     data_admissao = input("Data de admissão (DD/MM/AAAA): ").strip()
 
     while True:
         try:
             datetime.strptime(data_admissao, "%d/%m/%Y")
             break
-
         except ValueError:
             print("Data inválida. Digite no formato DD/MM/AAAA.")
             data_admissao = input(
@@ -185,16 +347,15 @@ def cadastrar_colaborador():
 
     print("_" * 40)
 
-    colaborador = {
-        "nome": nome,
-        "tipo": tipo,
-        "matricula": matricula,
-        "cargo": cargo,
-        "regime": regime,
-        "vale_transporte": vale_transporte,
-        "data_admissao": data_admissao,
-        "salario_base": SALARIO_BASE
-    }
+    colaborador = criar_colaborador(
+        tipo,
+        matricula,
+        nome,
+        cargo,
+        regime,
+        vale_transporte,
+        data_admissao
+    )
 
     colaboradores.append(colaborador)
 
@@ -215,16 +376,10 @@ def cadastrar_colaborador():
     print(f"Regime: {regime}")
     print(f"Vale-transporte: {vale_transporte.capitalize()}")
     print(f"Data de admissão: {data_admissao}")
-    print(f"Salário-base: R$ {SALARIO_BASE:.2f}")
-
+    print(f"Salário-base: {moeda(SALARIO_BASE)}")
     print("=" * 48)
 
-
-def moeda(valor):
-    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
 def folha_pagamento_geral():
-
     if not colaboradores:
         print("\nNenhum colaborador cadastrado.")
         return
@@ -237,12 +392,6 @@ def folha_pagamento_geral():
     total_descontos = 0
     total_liquido = 0
 
-    tipos = {
-        "1": "Padrão",
-        "2": "Comissionado",
-        "3": "Produção"
-    }
-
     meses = [
         "", "JANEIRO", "FEVEREIRO", "MARÇO",
         "ABRIL", "MAIO", "JUNHO",
@@ -251,34 +400,6 @@ def folha_pagamento_geral():
     ]
 
     periodo = f"{meses[datetime.now().month]} / {datetime.now().year}"
-
-    def ler_valor(mensagem):
-        while True:
-            try:
-                valor = float(input(mensagem).strip().replace(",", "."))
-
-                if valor < 0:
-                    print("O valor não pode ser negativo.")
-                    continue
-
-                return valor
-
-            except ValueError:
-                print("Digite um valor numérico válido.")
-
-    def ler_quantidade(mensagem):
-        while True:
-            try:
-                quantidade = int(input(mensagem).strip())
-
-                if quantidade < 0:
-                    print("A quantidade não pode ser negativa.")
-                    continue
-
-                return quantidade
-
-            except ValueError:
-                print("Digite uma quantidade inteira válida.")
 
     print("\n" + "=" * 60)
     print("                  FOLHAFÁCIL")
@@ -289,31 +410,22 @@ def folha_pagamento_geral():
     print("\nIniciando atualização dos dados de pagamento...")
 
     for indice, colaborador in enumerate(colaboradores, start=1):
+        tipo = obter_tipo_colaborador(colaborador)
 
-        nome = colaborador["nome"]
-        tipo = colaborador["tipo"]
-        regime = colaborador["regime"]
-
-        salario_base = colaborador["salario_base"]
+        print("\n" + "_" * 60)
+        print(f"\n[{indice}/{len(colaboradores)}] {colaborador.nome.upper()}")
+        print(f"\nMatrícula: {colaborador.matricula}")
+        print(f"Tipo: {tipo}")
+        print(f"Regime: {colaborador.regime}")
 
         vendas = 0
         percentual_comissao = 0
         comissao = 0
-
         pecas = 0
         valor_peca = 0
         total_producao = 0
 
-        print("\n" + "_" * 60)
-
-        print(f"\n[{indice}/{len(colaboradores)}] {nome.upper()}")
-
-        print(f"\nMatrícula: {colaborador['matricula']}")
-        print(f"Tipo: {tipos[tipo]}")
-        print(f"Regime: {regime}")
-
-        if tipo == "2":
-
+        if isinstance(colaborador, ColaboradorComissionado):
             vendas = ler_valor(
                 "\nInforme o valor total de vendas no período:\n> "
             )
@@ -328,16 +440,15 @@ def folha_pagamento_geral():
                     "Informe o percentual de comissão:\n> "
                 )
 
-            comissao = round(
-                vendas * percentual_comissao / 100, 2
-            )
+            colaborador.valorVendas = vendas
+            colaborador.percentualComissao = percentual_comissao
+            comissao = colaborador.calcularComissao()
 
             print("\n" + "-" * 40)
             print(f"Comissão cadastrada: {percentual_comissao:g}%")
             print(f"Comissão calculada: {moeda(comissao)}")
 
-        elif tipo == "3":
-
+        elif isinstance(colaborador, ColaboradorProducao):
             pecas = ler_quantidade(
                 "\nInforme a quantidade de peças produzidas:\n> "
             )
@@ -346,7 +457,9 @@ def folha_pagamento_geral():
                 "\nInforme o valor pago por peça:\n> "
             )
 
-            total_producao = round(pecas * valor_peca, 2)
+            colaborador.quantidadePecas = pecas
+            colaborador.valorPorPeca = valor_peca
+            total_producao = colaborador.calcularProdutividade()
 
             print("\n" + "-" * 40)
             print(f"Valor por peça: {moeda(valor_peca)}")
@@ -358,33 +471,27 @@ def folha_pagamento_geral():
 
         print("\nDados registrados com sucesso!")
 
-        salario_bruto = round(
-            salario_base + comissao + total_producao, 2
-        )
+        salario_bruto = colaborador.calcularSalarioFinal()
 
         desconto_inss = 0
         desconto_vt = 0
 
-        if regime == "CLT":
-
+        if colaborador.regime == "CLT":
             desconto_inss = 155.69
 
-            if colaborador["vale_transporte"] == "SIM":
-                desconto_vt = round(salario_base * 0.06, 2)
+            if colaborador.vale_transporte == "SIM":
+                desconto_vt = round(colaborador.salarioBase * 0.06, 2)
 
         descontos = round(desconto_inss + desconto_vt, 2)
-
         salario_liquido = round(salario_bruto - descontos, 2)
 
-        # ARMAZENAMENTO DOS RESULTADOS DA FOLHA
-
         dados_folha = {
-            "nome": nome,
-            "matricula": colaborador["matricula"],
-            "cargo": colaborador["cargo"],
-            "tipo": tipos[tipo],
-            "regime": regime,
-            "salario_base": salario_base,
+            "nome": colaborador.nome,
+            "matricula": colaborador.matricula,
+            "cargo": colaborador.cargo,
+            "tipo": tipo,
+            "regime": colaborador.regime,
+            "salario_base": colaborador.salarioBase,
             "vendas": vendas,
             "percentual_comissao": percentual_comissao,
             "comissao": comissao,
@@ -417,7 +524,6 @@ def folha_pagamento_geral():
     print(f"\nPERÍODO: {periodo}")
 
     for indice, dados in enumerate(folha, start=1):
-
         print("\n")
         print(f"[{indice}] {dados['nome'].upper()}")
         print("-" * 60)
@@ -428,26 +534,19 @@ def folha_pagamento_geral():
         print(f"Regime: {dados['regime']}")
 
         print("\nCOMPOSIÇÃO SALARIAL\n")
-
         print(f"{'Salário-base:':<34}{moeda(dados['salario_base']):>20}")
 
         if dados["tipo"] == "Comissionado":
-
             print(f"{'Total de vendas:':<34}{moeda(dados['vendas']):>20}")
-
             print(
                 f"{'Percentual de comissão:':<34}"
                 f"{str(dados['percentual_comissao']) + '%':>20}"
             )
-
             print(f"{'Valor da comissão:':<34}{moeda(dados['comissao']):>20}")
 
         elif dados["tipo"] == "Produção":
-
             print(f"{'Peças produzidas:':<34}{dados['pecas']:>20}")
-
             print(f"{'Valor por peça:':<34}{moeda(dados['valor_peca']):>20}")
-
             print(
                 f"{'Total da produção:':<34}"
                 f"{moeda(dados['total_producao']):>20}"
@@ -459,24 +558,19 @@ def folha_pagamento_geral():
         print("\nDESCONTOS\n")
 
         if dados["regime"] == "CLT":
-
             print(f"{'INSS:':<34}{moeda(dados['inss']):>20}")
-
             print(
                 f"{'Vale-transporte:':<34}"
                 f"{moeda(dados['vale_transporte']):>20}"
             )
-
             print(
                 f"{'Total de descontos:':<34}"
                 f"{moeda(dados['descontos']):>20}"
             )
-
         else:
             print("Descontos automáticos não aplicados ao regime PJ.")
 
         print()
-
         print(
             f"{'SALÁRIO LÍQUIDO:':<34}"
             f"{moeda(dados['salario_liquido']):>20}"
@@ -490,46 +584,36 @@ def folha_pagamento_geral():
         f"{'Total de colaboradores:':<34}"
         f"{len(folha):>20}"
     )
-
     print()
-
     print(
         f"{'Total de salários brutos:':<34}"
         f"{moeda(total_bruto):>20}"
     )
-
     print()
-
     print(
         f"{'Total de INSS:':<34}"
         f"{moeda(total_inss):>20}"
     )
-
     print(
         f"{'Total de vale-transporte:':<34}"
         f"{moeda(total_vt):>20}"
     )
-
     print()
-
     print(
         f"{'Total de descontos:':<34}"
         f"{moeda(total_descontos):>20}"
     )
 
     print("\n" + "=" * 60)
-
     print(
         f"{'TOTAL LÍQUIDO A PAGAR:':<34}"
         f"{moeda(total_liquido):>20}"
     )
-
     print("=" * 60)
 
     print("\nFolha de pagamento gerada com sucesso!")
 
 def pesquisar_colaborador():
-
     print("\n" + "=" * 60)
     print("             >>> PESQUISAR COLABORADOR <<<")
     print("=" * 60)
@@ -545,8 +629,8 @@ def pesquisar_colaborador():
 
     for colaborador in colaboradores:
         if (
-            consulta.casefold() in colaborador["nome"].casefold()
-            or consulta == colaborador["matricula"]
+            consulta.casefold() in colaborador.nome.casefold()
+            or consulta == colaborador.matricula
         ):
             encontrados.append(colaborador)
 
@@ -554,66 +638,245 @@ def pesquisar_colaborador():
         print("\nNenhum colaborador encontrado.")
         return
 
-    def moeda(valor):
-        return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
-    tipos = {
-        "1": "Padrão",
-        "2": "Comissionado",
-        "3": "Produção"
-    }
-
     for colaborador in encontrados:
-
-        nome = colaborador["nome"]
-        matricula = colaborador["matricula"]
-        cargo = colaborador["cargo"]
-        data_admissao = colaborador["data_admissao"]
-        tipo = tipos.get(colaborador["tipo"], colaborador["tipo"])
-        regime = colaborador["regime"]
-        vale_transporte = colaborador["vale_transporte"]
-        salario = colaborador["salario_base"]
+        tipo = obter_tipo_colaborador(colaborador)
 
         print("\n" + "=" * 60)
         print("                 DADOS DO COLABORADOR")
         print("=" * 60)
 
         print(f"{'Funcionário':<32}{'Matrícula'}")
-        print(f"{nome:<32}{matricula}")
-
+        print(f"{colaborador.nome:<32}{colaborador.matricula}")
         print()
 
         print(f"{'Cargo':<32}{'Data de admissão'}")
-        print(f"{cargo:<32}{data_admissao}")
-
+        print(f"{colaborador.cargo:<32}{colaborador.data_admissao}")
         print()
 
         print(f"{'Tipo de colaborador':<32}{'Regime'}")
-        print(f"{tipo:<32}{regime}")
-
+        print(f"{tipo:<32}{colaborador.regime}")
         print()
 
-        if regime == "PJ":
+        if colaborador.regime == "PJ":
             vale_transporte_exibicao = "Não se aplica"
         else:
-            vale_transporte_exibicao = vale_transporte.capitalize()
+            vale_transporte_exibicao = colaborador.vale_transporte.capitalize()
 
         print(f"{'Vale-transporte':<32}{'Salário bruto'}")
-        print(f"{vale_transporte_exibicao:<32}{moeda(salario)}")
+        print(
+            f"{vale_transporte_exibicao:<32}"
+            f"{moeda(colaborador.salarioBase)}"
+        )
 
         print("=" * 60)
 
-def menu_relatorios():
+def editar_colaborador():
+    print("\n" + "=" * 48)
+    print("          >>> EDITAR COLABORADOR <<<")
+    print("=" * 48)
 
+    if not colaboradores:
+        print("\nNenhum colaborador cadastrado.")
+        return
+
+    print("\n[  MATRÍCULA  ]\n")
+    matricula = input("Digite a matrícula do colaborador: ").strip()
+
+    colaborador = buscar_colaborador(matricula)
+
+    if colaborador is None:
+        print("\nColaborador não encontrado.")
+        return
+
+    print("\n" + "-" * 48)
+    print("          DADOS DO COLABORADOR")
+    print("-" * 48)
+
+    colaborador.exibirDados()
+    print("-" * 48)
+
+    while True:
+        print("\n[  OPÇÕES DE EDIÇÃO  ]\n")
+        print("1. Nome")
+        print("2. Tipo de colaborador")
+        print("3. Cargo")
+        print("4. Regime de contratação")
+        print("5. Vale-transporte")
+        print("6. Data de admissão")
+        print("0. Cancelar edição")
+        print("\n" + "-" * 48)
+
+        campo = input("Escolha uma opção (0 a 6): ").strip()
+
+        if campo == "0":
+            print("\nEdição cancelada.")
+            return
+
+        elif campo == "1":
+            print("\n[  NOME  ]\n")
+            nome = input("Novo nome completo: ").strip()
+
+            if nome:
+                colaborador.nome = nome
+                print("\nNome atualizado com sucesso!")
+            else:
+                print("\nO nome não pode ficar vazio.")
+
+        elif campo == "2":
+            print("\n[  TIPO DE COLABORADOR  ]\n")
+            print("1 - Padrão")
+            print("2 - Comissionado")
+            print("3 - Produção")
+
+            tipo = input("\nEscolha o novo tipo: ").strip()
+
+            if tipo in ("1", "2", "3"):
+                indice = colaboradores.index(colaborador)
+
+                novo_colaborador = criar_colaborador(
+                    tipo,
+                    colaborador.matricula,
+                    colaborador.nome,
+                    colaborador.cargo,
+                    colaborador.regime,
+                    colaborador.vale_transporte,
+                    colaborador.data_admissao,
+                    colaborador.salarioBase
+                )
+
+                colaboradores[indice] = novo_colaborador
+                colaborador = novo_colaborador
+
+                print("\nTipo atualizado com sucesso!")
+            else:
+                print("\nTipo inválido.")
+
+        elif campo == "3":
+            print("\n[  CARGO  ]\n")
+
+            for numero, nome_cargo in CARGOS.items():
+                print(f"{numero} - {nome_cargo}")
+
+            cargo = input("\nEscolha o novo cargo: ").strip()
+
+            if cargo in CARGOS:
+                colaborador.cargo = CARGOS[cargo]
+                print("\nCargo atualizado com sucesso!")
+            else:
+                print("\nCargo inválido.")
+
+        elif campo == "4":
+            print("\n[  REGIME DE CONTRATAÇÃO  ]\n")
+            print("1 - CLT")
+            print("2 - PJ")
+
+            regime = input("\nEscolha o novo regime: ").strip()
+
+            if regime == "1":
+                colaborador.regime = "CLT"
+                print("\nRegime atualizado para CLT.")
+
+                print("\n[  VALE-TRANSPORTE  ]\n")
+                resposta = ler_sim_nao(
+                    "Recebe vale-transporte? (Sim/Não): "
+                )
+                colaborador.vale_transporte = resposta
+
+            elif regime == "2":
+                colaborador.regime = "PJ"
+                colaborador.vale_transporte = "NÃO SE APLICA"
+                print("\nRegime atualizado para PJ.")
+                print("Vale-transporte: Não se aplica.")
+            else:
+                print("\nRegime inválido.")
+
+        elif campo == "5":
+            if colaborador.regime == "PJ":
+                print("\nVale-transporte não se aplica ao regime PJ.")
+                continue
+
+            print("\n[  VALE-TRANSPORTE  ]\n")
+            colaborador.vale_transporte = ler_sim_nao(
+                "Recebe vale-transporte? (Sim/Não): "
+            )
+            print("\nVale-transporte atualizado com sucesso!")
+
+        elif campo == "6":
+            print("\n[  DATA DE ADMISSÃO  ]\n")
+            data = input("Nova data (DD/MM/AAAA): ").strip()
+
+            while True:
+                try:
+                    datetime.strptime(data, "%d/%m/%Y")
+                    break
+                except ValueError:
+                    print("Data inválida. Digite no formato DD/MM/AAAA.")
+                    data = input("Nova data (DD/MM/AAAA): ").strip()
+
+            colaborador.data_admissao = data
+            print("\nData de admissão atualizada com sucesso!")
+
+        else:
+            print("\nOpção inválida.")
+
+        print("\n" + "-" * 48)
+
+        continuar = ler_sim_nao(
+            "Deseja editar outra informação? (Sim/Não): "
+        )
+
+        if continuar != "SIM":
+            print("\nEdição finalizada com sucesso!")
+            break
+
+def excluir_colaborador():
+    print("\n" + "=" * 48)
+    print("          >>> EXCLUIR COLABORADOR <<<")
+    print("=" * 48)
+
+    if not colaboradores:
+        print("\nNenhum colaborador cadastrado.")
+        return
+
+    print("\n[  MATRÍCULA  ]\n")
+    matricula = input("Digite a matrícula do colaborador: ").strip()
+
+    colaborador = buscar_colaborador(matricula)
+
+    if colaborador is None:
+        print("\nColaborador não encontrado.")
+        return
+
+    print("\n" + "-" * 48)
+    print("          DADOS DO COLABORADOR")
+    print("-" * 48)
+
+    print(f"Nome: {colaborador.nome}")
+    print(f"Matrícula: {colaborador.matricula}")
+    print(f"Cargo: {colaborador.cargo}")
+    print("-" * 48)
+
+    print("\nTem certeza que deseja excluir este colaborador?")
+
+    confirmacao = ler_sim_nao("Confirma a exclusão? (Sim/Não): ")
+
+    if confirmacao == "SIM":
+        colaboradores.remove(colaborador)
+
+        print("\n" + "=" * 48)
+        print("       COLABORADOR EXCLUÍDO COM SUCESSO")
+        print("=" * 48)
+    else:
+        print("\nExclusão cancelada.")
+
+def menu_relatorios():
     while True:
         print("\n" + "-" * 48)
         print("                    RELATÓRIOS")
         print("-" * 48)
-
         print("1. Relatório geral")
         print("2. Relatório por cargo")
         print("0. Voltar ao menu principal")
-
         print("-" * 48)
 
         opcao_relatorio = input("Escolha uma opção (0 a 2): ").strip()
@@ -628,17 +891,15 @@ def menu_relatorios():
 
         executar_relatorio(opcao_relatorio)
 
+
 def executar_relatorio(opcao_relatorio):
-
-     if opcao_relatorio == "1":
+    if opcao_relatorio == "1":
         relatorio_geral()
-
-     elif opcao_relatorio == "2":
+    elif opcao_relatorio == "2":
         relatorio_por_cargo()
 
 
 def relatorio_geral():
-
     print("\n" + "=" * 60)
     print("                 RELATÓRIO GERAL")
     print("=" * 60)
@@ -647,15 +908,19 @@ def relatorio_geral():
         print("\nNenhum colaborador cadastrado para exibir.")
         return
 
-    tipos = {
-        "1": "Padrão",
-        "2": "Comissionado",
-        "3": "Produção"
-    }
+    total_salarios_base = sum(
+        colaborador.salarioBase for colaborador in colaboradores
+    )
 
-    total_salarios_base = sum(c["salario_base"] for c in colaboradores)
-    total_clt = sum(1 for c in colaboradores if c["regime"] == "CLT")
-    total_pj = sum(1 for c in colaboradores if c["regime"] == "PJ")
+    total_clt = sum(
+        1 for colaborador in colaboradores
+        if colaborador.regime == "CLT"
+    )
+
+    total_pj = sum(
+        1 for colaborador in colaboradores
+        if colaborador.regime == "PJ"
+    )
 
     print(f"\nTotal de colaboradores: {len(colaboradores)}")
     print()
@@ -670,24 +935,24 @@ def relatorio_geral():
     print("-" * 60)
 
     for indice, colaborador in enumerate(colaboradores, start=1):
-        tipo = tipos.get(colaborador["tipo"], colaborador["tipo"])
-        print(f"\n{indice}. {colaborador['nome']}")
-        print(f"   Matrícula: {colaborador['matricula']}")
-        print(f"   Cargo: {colaborador['cargo']}")
+        tipo = obter_tipo_colaborador(colaborador)
+
+        print(f"\n{indice}. {colaborador.nome}")
+        print(f"   Matrícula: {colaborador.matricula}")
+        print(f"   Cargo: {colaborador.cargo}")
         print(f"   Tipo: {tipo}")
-        print(f"   Regime: {colaborador['regime']}")
+        print(f"   Regime: {colaborador.regime}")
         print(
             f"   Vale-transporte: "
-            f"{colaborador['vale_transporte'].capitalize()}"
+            f"{colaborador.vale_transporte.capitalize()}"
         )
-        print(f"   Data de admissão: {colaborador['data_admissao']}")
-        print(f"   Salário-base: {moeda(colaborador['salario_base'])}")
+        print(f"   Data de admissão: {colaborador.data_admissao}")
+        print(f"   Salário-base: {moeda(colaborador.salarioBase)}")
 
     print("\n" + "=" * 60)
 
 
 def relatorio_por_cargo():
-
     print("\n" + "=" * 60)
     print("               RELATÓRIO POR CARGO")
     print("=" * 60)
@@ -699,14 +964,19 @@ def relatorio_por_cargo():
     cargos = {}
 
     for colaborador in colaboradores:
-        cargo = colaborador["cargo"]
+        cargo = colaborador.cargo
         cargos.setdefault(cargo, []).append(colaborador)
 
-    total_salarios_base = sum(c["salario_base"] for c in colaboradores)
+    total_salarios_base = sum(
+        colaborador.salarioBase for colaborador in colaboradores
+    )
 
     for cargo in sorted(cargos):
         lista = cargos[cargo]
-        soma_salarios = sum(c["salario_base"] for c in lista)
+
+        soma_salarios = sum(
+            colaborador.salarioBase for colaborador in lista
+        )
 
         print("\n" + "-" * 60)
         print(cargo.upper())
@@ -719,10 +989,10 @@ def relatorio_por_cargo():
 
         for colaborador in lista:
             print(
-                f"  - {colaborador['nome']} "
-                f"(matrícula {colaborador['matricula']}) — "
-                f"{colaborador['regime']} — "
-                f"salário-base {moeda(colaborador['salario_base'])}"
+                f"  - {colaborador.nome} "
+                f"(matrícula {colaborador.matricula}) — "
+                f"{colaborador.regime} — "
+                f"salário-base {moeda(colaborador.salarioBase)}"
             )
 
     print("\n" + "-" * 60)
@@ -733,4 +1003,3 @@ def relatorio_por_cargo():
 
 if __name__ == "__main__":
     main()
-    
